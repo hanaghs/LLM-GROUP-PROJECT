@@ -7,7 +7,7 @@ import {
 import { useStore } from '../store';
 
 export const Layout: React.FC = () => {
-  const { missions, invoices, user, logout } = useStore();
+  const { missions, invoices, user } = useStore();
   const navigate = useNavigate();
   
   const activeMissionsCount = missions.filter(m => m.status === 'active').length;

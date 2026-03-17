@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useStore } from '../store';
 import { Save, LogOut, Upload, ShieldAlert } from 'lucide-react';
 
