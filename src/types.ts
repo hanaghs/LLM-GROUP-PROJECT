@@ -1,3 +1,20 @@
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  avatar?: string;
+  workspaceName: string;
+  currency: string;
+  timezone: string;
+  notifications: {
+    email: boolean;
+    invoiceReminders: boolean;
+    overdueAlerts: boolean;
+    meetingReminders: boolean;
+  };
+  twoFactorEnabled: boolean;
+}
+
 export interface Client {
   id: string;
   name: string;

@@ -1,7 +1,13 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import type { Client, Mission, Invoice, Meeting } from '../types';
+import type { Client, Mission, Invoice, Meeting, User } from '../types';
 
 interface StoreState {
+  isAuthenticated: boolean;
+  user: User | null;
+  login: (email: string) => void;
+  logout: () => void;
+  updateUser: (data: Partial<User>) => void;
+  
   clients: Client[];
   missions: Mission[];
   invoices: Invoice[];
@@ -23,9 +29,11 @@ interface StoreState {
 const StoreContext = createContext<StoreState>({} as StoreState);
 export const useStore = () => useContext(StoreContext);
 
-const LOCAL_KEY = 'freelance-crm-v3';
+const LOCAL_KEY = 'freelance-crm-v4';
 
 export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
   const [clients, setClients] = useState<Client[]>([]);
   const [missions, setMissions] = useState<Mission[]>([]);
   const [invoices, setInvoices] = useState<Invoice[]>([]);
@@ -36,6 +44,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     const saved = localStorage.getItem(LOCAL_KEY);
     if (saved) {
       const data = JSON.parse(saved);
+      setIsAuthenticated(data.isAuthenticated || false);
+      setUser(data.user || null);
       setClients(data.clients || []);
       setMissions(data.missions || []);
       setInvoices(data.invoices || []);
@@ -78,9 +88,36 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     if (isReady) {
-      localStorage.setItem(LOCAL_KEY, JSON.stringify({ clients, missions, invoices, meetings }));
+      localStorage.setItem(LOCAL_KEY, JSON.stringify({ isAuthenticated, user, clients, missions, invoices, meetings }));
     }
-  }, [clients, missions, invoices, meetings, isReady]);
+  }, [isAuthenticated, user, clients, missions, invoices, meetings, isReady]);
+
+  // Auth Helpers
+  const login = (email: string) => {
+    setIsAuthenticated(true);
+    setUser({
+      id: 'u-1',
+      name: 'Alex Developer',
+      email: email,
+      workspaceName: 'Alex.Dev',
+      currency: 'USD',
+      timezone: 'America/Los_Angeles',
+      notifications: {
+        email: true,
+        invoiceReminders: true,
+        overdueAlerts: true,
+        meetingReminders: true
+      },
+      twoFactorEnabled: false
+    });
+  };
+  
+  const logout = () => {
+    setIsAuthenticated(false);
+    setUser(null);
+  };
+  
+  const updateUser = (data: Partial<User>) => setUser(p => p ? { ...p, ...data } : null);
 
   // Helpers
   const addClient = (data: Omit<Client, 'id' | 'createdAt'>) => setClients(p => [...p, { ...data, id: crypto.randomUUID(), createdAt: Date.now() }]);
@@ -107,6 +144,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   return (
     <StoreContext.Provider value={{
+      isAuthenticated, user, login, logout, updateUser,
       clients, missions, invoices, meetings,
       addClient, updateClient, deleteClient,
       addMission, updateMission, deleteMission,
